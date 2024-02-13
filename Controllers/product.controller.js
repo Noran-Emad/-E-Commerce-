@@ -55,6 +55,41 @@ const EditProduct = async (req, res) => {
   }
 };
 
+/* Search for Products */
+const SearchForProducts = async (req, res) => {
+  const { ProductName, CategoryName } = req.body;
+  if (!ProductName && !CategoryName)
+    return res.status(422).send({ message: "Please enter ProductName or CategoryName" });
+
+  try {
+    let products = [];
+
+    // Search by Product name 
+      if (ProductName) {
+      const product = await ProductCollection.findOne({ ProductName });
+      if (product) {
+        products.push(product);
+      }
+    }
+
+    // Search by category name
+    if (CategoryName) {
+      const category = await CategoryCollection.findOne({ CategoryName });
+      if (category) {
+        products = products.concat(category.Products);
+      }
+    }
+
+    // If no products found
+    if (products.length == 0) {
+      return res.status(404).send(`There are no products with the entered data`);
+    }
+    res.send(products);
+  } catch (err) {
+    res.status(500).send(`Internal Server Error`);
+  }
+};
+
 /* Delete a Product */
 const DeleteProduct = async (req, res) => {
    ProductCollection.findById({ _id: req.params.id }).exec().then(() => {
@@ -75,11 +110,13 @@ const DeleteAllProduct = async (req, res) => {
 })
 
 };
+
 module.exports = {
   GetAllProducts,
   GetProduct,
   AddProduct,
   EditProduct,
+  SearchForProducts,
   DeleteProduct,
   DeleteAllProduct
 };

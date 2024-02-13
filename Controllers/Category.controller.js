@@ -13,7 +13,7 @@ const GetAllCategory = (req, res) =>
 /* Get a Category */
 const GetCategory = async (req, res) => {
   try {
-   let cat = await CategoryCollection.findById( req.params.id ).populate('Products');
+    let cat = await CategoryCollection.findById(req.params.id).populate('Products');
     res.send(cat)
   } catch (err) {
     res.status(404).send(`There is no Category with id: ${req.params.id}`);
@@ -44,8 +44,8 @@ const EditCategory = async (req, res) => {
   else {
     try {
       await CategoryCollection.updateOne({ _id: req.params.id }, req.body);
-      await CategoryCollection.find({ _id: req.params.id }).then((Category) =>res.send(Category));
-    } 
+      await CategoryCollection.find({ _id: req.params.id }).then((Category) => res.send(Category));
+    }
     catch (err) {
       res.status(404).send(`There is no Category with id: ${req.params.id}`);
     }
@@ -54,19 +54,26 @@ const EditCategory = async (req, res) => {
 
 /* Delete a Category */
 const DeleteCategory = async (req, res) => {
-   CategoryCollection.findById({ _id: req.params.id }).exec().then(() => {
+  CategoryCollection.findById({ _id: req.params.id }).exec().then(() => {
     CategoryCollection.findByIdAndDelete({ _id: req.params.id }).exec();
     GetAllCategory(req, res);
-}).catch(err => {
+  }).catch(err => {
     res.status(404).send(`There is No Category with id ${req.params.id}`);
-})
+  })
 
 };
-
+const DeleteAllCategories = async (req, res) => {
+  CategoryCollection.deleteMany().exec().then(() => {
+    GetAllCategory(req, res);
+  }).catch(err => {
+    res.status(404).send(err.message);
+  })
+};
 module.exports = {
   GetAllCategory,
   GetCategory,
   AddCategory,
   EditCategory,
-  DeleteCategory
+  DeleteCategory,
+  DeleteAllCategories
 };
