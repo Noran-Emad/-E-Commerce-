@@ -1,19 +1,21 @@
 const joi = require("joi");
 
-let CategoryValidation = (Category) => {
-  Categoryschema = joi.object({
+let CategoryValidation = (category) => {
+  categoryschema = joi.object({
     CategoryName: joi.string().min(3).required(),
     CategoryDescription: joi.string().min(10).required()
   });
-  return Categoryschema.validate(Category);
+
+  return categoryschema.validate(category);
 };
 
-let CategoryEditValidation = (Category) => {
-  Categoryschema = joi.object({
+let CategoryEditValidation = (category) => {
+  categoryschema = joi.object({
     CategoryName: joi.string().min(3),
     CategoryDescription: joi.string().min(10)
   });
-  return Categoryschema.validate(Category);
+  
+  return categoryschema.validate(category);
 };
 
 module.exports = {

@@ -1,71 +1,120 @@
 const express = require("express");
-const { ProductEditValidation, ProductValidation } = require("../Validators/Product.validator");
-const ProductCollection = require("../Models/Product.model");
-const CategoryCollection = require("../Models/Category.model");
 const app = express();
 app.use(express.json());
 
-/* Get All */
+const { ProductEditValidation, ProductValidation,} = require("../Validators/Product.validator");
+const ProductCollection = require("../Models/Product.model");
+const CategoryCollection = require("../Models/Category.model");
+const { isidValid } = require("../Services/validator.service");
+
+
+
+/* Get All Products */
 const GetAllProducts = (req, res) =>
   ProductCollection.find().then((products) => res.send(products));
 
-/* Get a Product */
+
+/* Get Product */
 const GetProduct = async (req, res) => {
   try {
-    await ProductCollection.find({ _id: req.params.id }).then((product) =>{
-      product.populate('Category')
-      res.send(product)
-    });
+
+    /* if user enters invalid product id in request paramter */
+    if(!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
+    
+    let product = await ProductCollection.findOne({ _id: req.params.id }).populate("Category").exec();
+    
+    if(!product) return res.status(404).send("There is no Product with id");
+    res.send(product);
+    
   } catch (err) {
-    res.status(404).send(`There is no Product with id: ${req.params.id}`);
+    res.status(400).send("sorry something went wrong");
   }
 };
 
-/* Post Product */
+
+/* Add Product */
 const AddProduct = async (req, res) => {
   let { error, value } = await ProductValidation(req.body);
-  if (error) {
-    res.statusCode = 400;
-    await res.send(error.details[0].message);
-  } else {
-    try{
-      let category = await CategoryCollection.findById( req.body.CategoryID );
+
+  if (error) await res.status(400).send(error.details[0].message);
+  else {
+    try {
+
+      /* if user enters invalid category id */
+      if(!isidValid(req.body.CategoryID))
+      return res.status(400).send("Category id is invalid");
+    
+      let category = await CategoryCollection.findById(req.body.CategoryID);
+      if(!category)
+        return res.status(400).send("there is no Category exist with that id");
+
       let createdproduct = await ProductCollection.create(req.body);
-       await category.Products.push(createdproduct._id);
-        await category.save();
-        res.send(req.body);
-    }catch(err){
-      res.status(400).send('there is no Category exist with that id');
+
+      await category.Products.push(createdproduct._id);
+      await category.save();
+      res.send(createdproduct);
+
+    } catch (err) {
+      res.status(400).send("sorry something went wrong");
     }
   }
 };
 
-/* Edit a Product */
+
+/* Edit Product */
 const EditProduct = async (req, res) => {
   let { error, value } = await ProductEditValidation(req.body);
   if (error) await res.status(400).send(error.details[0].message);
   else {
     try {
-      await ProductCollection.updateOne({ _id: req.params.id }, req.body);
-      await ProductCollection.find({ _id: req.params.id }).then((product) =>res.send(product));
-    } 
-    catch (err) {
-      res.status(404).send(`There is no Product with id: ${req.params.id}`);
+      /* if user enters invalid product id in request paramter */
+      if(!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
+      
+      let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID").exec();
+      
+      if(!product) return res.status(404).send("There is no Product with id");
+      let updatedproduct = await ProductCollection.findOneAndUpdate({ _id: req.params.id }, req.body,{ new: true });
+      res.send(updatedproduct);
+      
+    } catch (err) {
+      res.status(400).send("sorry something went wrong");
     }
   }
 };
+
+
+
+/* Delete a Product */
+const DeleteProduct = async (req, res) => {
+    try {
+      /* if user enters invalid product id in request paramter */
+      if(!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
+      
+      let product = await ProductCollection.findOne({ _id: req.params.id }).populate("Category").exec();
+      
+      if(!product) return res.status(404).send("There is no Product with id");
+      await ProductCollection.findByIdAndDelete({ _id: req.params.id }, req.body);
+      res.send(product);
+      
+    } catch (err) {
+      res.status(400).send("sorry something went wrong");
+    }
+};
+
 
 /* Search for Products */
 const SearchForProducts = async (req, res) => {
   const { ProductName, CategoryName } = req.body;
   if (!ProductName && !CategoryName)
-    return res.status(422).send({ message: "Please enter ProductName or CategoryName" });
+    return res
+      .status(422)
+      .send({ message: "Please enter ProductName or CategoryName" });
 
   try {
     let products = [];
 
-    // Search by Product name 
-      if (ProductName) {
+    // Search by Product name
+    if (ProductName) {
       const product = await ProductCollection.findOne({ ProductName });
       if (product) {
         products.push(product);
@@ -82,7 +131,9 @@ const SearchForProducts = async (req, res) => {
 
     // If no products found
     if (products.length == 0) {
-      return res.status(404).send(`There are no products with the entered data`);
+      return res
+        .status(404)
+        .send(`There are no products with the entered data`);
     }
     res.send(products);
   } catch (err) {
@@ -90,26 +141,6 @@ const SearchForProducts = async (req, res) => {
   }
 };
 
-/* Delete a Product */
-const DeleteProduct = async (req, res) => {
-   ProductCollection.findById({ _id: req.params.id }).exec().then(() => {
-    ProductCollection.findByIdAndDelete({ _id: req.params.id }).exec();
-    GetAllProducts(req, res);
-}).catch(err => {
-    res.status(404).send(`There is No Product with id ${req.params.id}`);
-})
-};
-
-
-/* Delete All Products */
-const DeleteAllProduct = async (req, res) => {
-  ProductCollection.deleteMany().exec().then(() => {
-   GetAllProducts(req, res);
-}).catch(err => {
-   res.status(404).send(`There is No Product with id ${req.params.id}`);
-})
-
-};
 
 module.exports = {
   GetAllProducts,
@@ -118,5 +149,4 @@ module.exports = {
   EditProduct,
   SearchForProducts,
   DeleteProduct,
-  DeleteAllProduct
 };

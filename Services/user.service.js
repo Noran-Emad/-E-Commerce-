@@ -1,8 +1,11 @@
 const User = require("../Models/user.model");
+const {CreateCart} = require("../Services/Cart.service");
 
 const createUserService = async (user) => {
   try {
-    return await User.create(user);
+    let createdUser = await User.create(user);
+    await CreateCart(createdUser)
+    return createdUser;
   } catch (e) {
     console.log(e);
   }

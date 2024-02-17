@@ -1,41 +1,56 @@
 const express = require("express");
-const { CategoryEditValidation, CategoryValidation } = require("../Validators/Category.validator");
-
-const CategoryCollection = require("../Models/Category.model");
 const app = express();
 app.use(express.json());
 
+const CategoryCollection = require("../Models/Category.model");
+const {isidValid} = require('../Services/validator.service');
+const { CategoryEditValidation, CategoryValidation } = require("../Validators/Category.validator");
 
-/* Get All */
+
+
+/* Get All categories */
 const GetAllCategory = (req, res) =>
   CategoryCollection.find().then((Category) => res.send(Category));
 
-/* Get a Category */
+
+/* Get products of category */
 const GetCategory = async (req, res) => {
   try {
-    let cat = await CategoryCollection.findById(req.params.id).populate('Products');
-    res.send(cat)
+    if(!isidValid(req.params.id))
+        return res.status(400).send('category id is invalid');
+
+    let category = await CategoryCollection.findOne({_id:req.params.id}).populate('Products').exec();
+        if(!category)
+        return res.status(404).send('There is no Category with this id');
+
+    res.send(category)
   } catch (err) {
-    res.status(404).send(`There is no Category with id: ${req.params.id}`);
+    res.status(400).send('sorry something went wrong');
   }
 };
 
 
-
-/* Post Category */
+/* Add Category */
 const AddCategory = async (req, res) => {
   let { error, value } = await CategoryValidation(req.body);
-  if (error) {
-    await res.status(400).send(error.details[0].message);
-  } else {
-    try {
-      await CategoryCollection.create(req.body);
-      await GetAllCategory(req, res);
-    } catch (err) {
-      res.status(500).send(`Error with creating Category: ${err}`);
+  if (error)  await res.status(400).send(error.details[0].message);
+    else {
+      try {
+
+        /* check if the category exist */
+        let isCategoryExist = await CategoryCollection
+        .findOne({CategoryName : req.body.CategoryName}).exec();
+        if(isCategoryExist)
+         return res.status(400).send('This Category is already exist');
+        
+        let createdcategory = await CategoryCollection.create(req.body);
+        res.send(createdcategory);
+        } catch (err) {
+        res.status(400).send("sorry something went wrong");
     }
   }
 };
+
 
 /* Edit a Category */
 const EditCategory = async (req, res) => {
@@ -43,37 +58,43 @@ const EditCategory = async (req, res) => {
   if (error) await res.status(400).send(error.details[0].message);
   else {
     try {
-      await CategoryCollection.updateOne({ _id: req.params.id }, req.body);
-      await CategoryCollection.find({ _id: req.params.id }).then((Category) => res.send(Category));
+      if(!isidValid(req.params.id))
+          return res.status(400).send('category id is invalid');
+
+      let updatedcategory = await CategoryCollection.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true });
+      if(!updatedcategory) return res.status(400).send('There is no category with this id');
+
+      res.send(updatedcategory);
     }
     catch (err) {
-      res.status(404).send(`There is no Category with id: ${req.params.id}`);
+      res.status(400).send("sorry something went wrong");
     }
   }
 };
 
+
 /* Delete a Category */
 const DeleteCategory = async (req, res) => {
-  CategoryCollection.findById({ _id: req.params.id }).exec().then(() => {
-    CategoryCollection.findByIdAndDelete({ _id: req.params.id }).exec();
-    GetAllCategory(req, res);
-  }).catch(err => {
-    res.status(404).send(`There is No Category with id ${req.params.id}`);
-  })
+  try {
+    if(!isidValid(req.params.id))
+        return res.status(400).send('category id is invalid');
 
+    let category = await CategoryCollection.findOne({ _id: req.params.id });
+    if(!category) return res.status(404).send('There is no category with this id');
+
+    await CategoryCollection.deleteOne(category);
+
+    res.send(category);
+  }
+  catch (err) {
+    res.status(400).send("sorry something went wrong");
+  }
 };
-const DeleteAllCategories = async (req, res) => {
-  CategoryCollection.deleteMany().exec().then(() => {
-    GetAllCategory(req, res);
-  }).catch(err => {
-    res.status(404).send(err.message);
-  })
-};
+
 module.exports = {
   GetAllCategory,
   GetCategory,
   AddCategory,
   EditCategory,
-  DeleteCategory,
-  DeleteAllCategories
+  DeleteCategory
 };

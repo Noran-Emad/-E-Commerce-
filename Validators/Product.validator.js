@@ -2,24 +2,26 @@ const joi = require('joi');
 
 let ProductValidation = (product) =>{
     productschema = joi.object({
-        ProductName: joi.string().min(3).required(),
-        productImage:joi.string().required(),
-        productDescription:joi.string().min(10).required(),
-        productPrice:joi.number().min(1).required(),
-        productQuantity:joi.number().min(0).required(),
-        CategoryID:joi.required()
+      CategoryID:joi.required(),
+      productImage:joi.string().required(),
+      ProductName: joi.string().min(3).required(),
+      productPrice:joi.number().min(1).required(),
+      productQuantity:joi.number().min(0).required(),
+      productDescription:joi.string().min(10).required(),
     })
+    
   return productschema.validate(product);
 }
 
 let ProductEditValidation = (product) =>{
     productschema = joi.object({
-        ProductName: joi.string().min(3),
-        productImage:joi.string(),
-        productDescription:joi.string().min(10),
-        productPrice:joi.number().min(1),
-        productQuantity:joi.number().min(0),
+      productImage:joi.string(),
+      productPrice:joi.number().min(1),
+      ProductName: joi.string().min(3),
+      productQuantity:joi.number().min(0),
+      productDescription:joi.string().min(10),
     })
+
   return productschema.validate(product);
 }
 
@@ -27,4 +29,3 @@ module.exports = {
     ProductValidation,
     ProductEditValidation
 }
-

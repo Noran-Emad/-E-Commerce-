@@ -1,8 +1,8 @@
 const expree = require("express")
-const { GetAllProducts, DeleteProduct, AddProduct, DeleteAllProduct, EditProduct } = require("../Controllers/product.controller")
-const { GetAllCategory, DeleteCategory, AddCategory, DeleteAllCategories, EditCategory } = require("../Controllers/Category.controller")
+const { GetAllProducts, DeleteProduct, AddProduct, EditProduct } = require("../Controllers/product.controller")
+const { GetAllCategory, DeleteCategory, AddCategory, EditCategory } = require("../Controllers/Category.controller")
 const { GetAllUsers } = require("../controllers/Admin.controller")
-const { GetAllOrders } = require("../controllers/order.controller")
+const { GetAllOrders } = require("../Controllers/Orders.controller")
 const router = expree.Router()
 
 /// get 
@@ -21,10 +21,10 @@ router.patch('categories/:id',EditCategory);
 
 ///delete
 router.delete('/categories/:id', DeleteCategory);
-router.delete('/categories/', DeleteAllCategories);
+// router.delete('/categories/', DeleteAllCategories);
 
 router.delete('/products/:id', DeleteProduct);
-router.delete('/products/',DeleteAllProduct);
+// router.delete('/products/',DeleteAllProduct);
 
 module.exports = router;
 

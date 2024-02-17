@@ -7,12 +7,12 @@ const DBCategoryShema = mongoose.Schema({
     minLength: 3,
     maxLength: 20,
   },
-  Products:[
+  Products: [
     {
-        type: mongoose.Types.ObjectId,
-        ref: 'Product'
-    }
-  ]
+      type: mongoose.Types.ObjectId,
+      ref: "Product",
+    },
+  ],
 });
 
 module.exports = mongoose.model("Category", DBCategoryShema);

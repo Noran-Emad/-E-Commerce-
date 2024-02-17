@@ -28,11 +28,13 @@ const DBProductShema = mongoose.Schema({
     type: Number,
     required: true,
     min: 1,
+    default:0
   },
   productQuantity: {
     type: Number,
     required: true,
     min: 0,
+    default:0
   },
 });
 
