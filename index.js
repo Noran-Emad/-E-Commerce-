@@ -11,6 +11,7 @@ const ReviewRouter = require('./Routes/Review.router');
 const ProductRouter = require('./Routes/Product.router');
 const CategoryRouter = require('./Routes/Category.router');
 const { SearchForProducts } = require('./Controllers/product.controller');
+const { auth } = require('./Middleware/auth');
 
 
 app.use('/api/products',ProductRouter);
@@ -21,5 +22,4 @@ app.use('/api/admin',AdminRouter);
 app.use('/api/order',OrderRouter);
 app.use('/api/cart',CartRouter);
 app.use('/api/user',userRouter);
-
 app.listen(process.env.PORT);
