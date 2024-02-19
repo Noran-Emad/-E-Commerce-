@@ -66,14 +66,9 @@ const {
   // Function to get user profile with email provided in header
   const getUserProfile = async (req, res) => {
     try {
-    const token = req.headers["jwt"];
-    if (!token) {
-      return res.status(401).send({ message: "Unauthorized user" });
-    }
-      const payload = jwt.verify(token, "myjwtsecret");
-      const { email } = payload;
-      const user = await findUserService(email);
-      res.send({name: user.name, email: user.email});
+      const emailFromHeader = req.headers["email"];
+      const {name, email } = await findUserService(emailFromHeader);
+      res.send({name: name, email: email });
     } catch (e) {
       res.status(500).send(e.message);
     }
@@ -81,12 +76,7 @@ const {
   
   // Function to update user profile
   const updateUserProfile = async (req, res) => {
-    const token = req.headers["jwt"];
-    if (!token) {
-      return res.status(401).send({ message: "Unauthorized user" });
-    }
-      const payload = jwt.verify(token, "myjwtsecret");
-      const { email } = payload;
+    const email = req.headers["email"];
   
     const user = await findUserService(email);
     if (!user) {
