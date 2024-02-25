@@ -1,34 +1,52 @@
 const express = require('express');
+const { getUserfromJWT } = require('../Services/validator.service');
+const { isidValid } = require('../Services/validator.service');
+const { PaymentValidation } = require('../Validators/payment.validator');
+const OrdersCollection = require("../models/Order.model");
+const PaymentCollection = require("../Models/payment.model");
 const app = express();
 app.use(express.json());
-const stripe = require('stripe')('sk_test_51OksNNIDtHJ4MMbwBeJEMFil0umzkVZWvXKp6nxRwjt46rrrz8s7SbFCO4fxPify8YmIN4VJ9G1VTE1l9bpX2h6F00GMYI71Jp');
-const {findUserEmailById} = require('../Services/user.service');
-const payment=async (req, res) => {
-    try{
-    const session = await stripe.checkout.sessions.create({
-      line_items: req.body.order?.map((item) => (
-        {
-        price_data: {
-          currency: 'egp',
-          unit_amount:Math.round(item.price*100), 
-          product_data: {
-            name: item.name,
-            description: item.description,
-          },
-        },
-        quantity: item.amount,}
 
-      )
-      ),
-      mode: 'payment',
-       success_url: `http://localhost:3000/orders?success=true`,
-       cancel_url: `http://localhost:3000/cart?canceled=true`,
-       customer_email: await findUserEmailById(req.body.user),
-    }) 
-    res.status(200).json({ status: 'success', session })}
-    catch (error) {
-    console.error('Error processing payment:', error.message);
-    res.status(500).json({ error: 'An error occurred while processing the payment.' });
-}
-}
+const payment = async (req, res) => {
+  let { error, value } = await PaymentValidation(req.body);
+  if (error) return await res.status(400).send(error.details[0].message);
+
+    try {
+      /* get the user from jwt header and check it's validation */
+      let user = await getUserfromJWT(req.headers.jwt, res);
+      if (!user) return;
+      
+      /* if user enter invalid order id in the request */
+      if (!isidValid(req.params.id))
+      return res.status(400).send("order id is invalid");
+
+      let order = await OrdersCollection.findById(req.params.id).exec();
+      if (!order)
+      return res.status(404).send("there is no order exist with that id");
+
+      /* If the order isn't an order from this user */
+      if(!(user.Orders.includes(order._id)))
+      return res.status(404).send("there is no order exist in your orders");
+
+      /* if the order is done or cancelld */
+      if(order.OrderStatus !== 'pending')
+      return res.status(400).send(`the order status is already ${order.OrderStatus}`)
+
+      /* Update the Order Statues to be done */
+      order.OrderStatus = 'done';
+      await order.save();
+      /* creating a payment transaction */
+    let createdtransaction = await PaymentCollection.create({
+      VisaCardNumber:req.body.VisaCardNumber,
+      NameOnVisa:req.body.NameOnVisa,
+      Cvv:req.body.Cvv,
+      Order:order._id,
+      User:user._id,
+    });
+     await res.send(createdtransaction);
+    } catch (err) {
+      res.status(400).send("sorry something went wrong");
+    }
+  }
+
 module.exports={payment}

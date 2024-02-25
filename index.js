@@ -10,12 +10,14 @@ const AdminRouter = require('./Routes/Admin.router');
 const ReviewRouter = require('./Routes/Review.router');
 const ProductRouter = require('./Routes/Product.router');
 const CategoryRouter = require('./Routes/Category.router');
+const PaymentRouter = require('./Routes/payment.routes');
 const { SearchForProducts } = require('./Controllers/product.controller');
 const { auth } = require('./Middleware/auth');
 
 
-app.use('/api/products',ProductRouter);
 app.use('/api/category',CategoryRouter);
+app.use('/api/products',ProductRouter);
+app.use('/api/payment',PaymentRouter);
 app.use('/api/search',SearchForProducts)
 app.use('/api/Review',ReviewRouter);
 app.use('/api/admin',AdminRouter);
