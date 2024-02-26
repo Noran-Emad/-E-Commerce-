@@ -5,26 +5,23 @@ const { GetAllUsers } = require("../controllers/Admin.controller")
 const { GetAllOrders } = require("../Controllers/Orders.controller")
 const router = expree.Router()
 
-/// get 
+/// GET 
 router.get('/users', GetAllUsers)
 router.get('/orders', GetAllOrders)
 router.get('/products', GetAllProducts)
 router.get('/categories', GetAllCategory)
 
-///add
+///ADD - POST
 router.post('/products/', AddProduct);
 router.post('/categories/', AddCategory);
 
-///edit
+///EDIT - PATCH
 router.patch('products/:id',EditProduct);
 router.patch('categories/:id',EditCategory);
 
-///delete
+///DELETE
 router.delete('/categories/:id', DeleteCategory);
-// router.delete('/categories/', DeleteAllCategories);
-
 router.delete('/products/:id', DeleteProduct);
-// router.delete('/products/',DeleteAllProduct);
 
 module.exports = router;
 
