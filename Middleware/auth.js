@@ -10,13 +10,12 @@ const auth = async (req, res, next) => {
 
     const payload = jwt.verify(token, "myjwtsecret");
     const { email } = payload;
-  
- 
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).send({ message: "Unauthorized user" });
     }
-
+    req.user = user;
     next();
   } catch (e) {
     return res.status(401).send({ message: "Unauthorized user" });

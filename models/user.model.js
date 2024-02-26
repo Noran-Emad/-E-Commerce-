@@ -21,6 +21,12 @@ const userSchema = new mongoose.Schema({
     minLength: 8,
     maxLength: 1024,
   },
+  address: {
+    type: String,
+    required: true,
+    minLength: 5,
+    maxLength: 250,
+  },
   Cart: {
     type: mongoose.Types.ObjectId,
     ref: "Cart",
