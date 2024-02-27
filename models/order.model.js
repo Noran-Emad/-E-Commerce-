@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const DBOrderShema = mongoose.Schema({
+  User:{
+    type:mongoose.Types.ObjectId,
+    ref:"User"
+  },
   OrderDate: {
     type:Date,
     default: Date.now(),

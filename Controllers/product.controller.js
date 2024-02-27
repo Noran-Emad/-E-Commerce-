@@ -16,19 +16,19 @@ const GetAllProducts = (req, res) =>
 
 /* Get Product */
 const GetProduct = async (req, res) => {
-  try {
+  // try {
 
     /* if user enters invalid product id in request paramter */
     if(!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
     
-    let product = await ProductCollection.findOne({ _id: req.params.id }).populate("Category").exec();
+    let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID","CategoryName").exec();
     
     if(!product) return res.status(404).send("There is no Product with id");
     res.send(product);
     
-  } catch (err) {
-    res.status(400).send("sorry something went wrong");
-  }
+  // } catch (err) {
+  //   res.status(400).send("sorry something went wrong");
+  // }
 };
 
 
@@ -36,7 +36,7 @@ const GetProduct = async (req, res) => {
 const AddProduct = async (req, res) => {
   let { error, value } = await ProductValidation(req.body);
 
-  if (error) await res.status(400).send(error.details[0].message);
+  if (error) return res.status(400).send(error.details[0].message);
   else {
     try {
 
@@ -90,7 +90,7 @@ const DeleteProduct = async (req, res) => {
       /* if user enters invalid product id in request paramter */
       if(!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
       
-      let product = await ProductCollection.findOne({ _id: req.params.id }).populate("Category").exec();
+      let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID","CategoryName").exec();
       
       if(!product) return res.status(404).send("There is no Product with id");
       await ProductCollection.findByIdAndDelete({ _id: req.params.id }, req.body);

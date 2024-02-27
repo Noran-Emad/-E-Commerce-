@@ -15,7 +15,8 @@ const paymentSchema = new mongoose.Schema({
     NameOnVisa:{
         type:String,
         required:true,
-        minLength:3
+        minLength:3,
+        MaxLength:100
     },
     VisaCardNumber:{
         type:Number,

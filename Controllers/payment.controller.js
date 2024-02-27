@@ -1,11 +1,13 @@
 const express = require('express');
 const { getUserfromJWT } = require('../Services/validator.service');
 const { isidValid } = require('../Services/validator.service');
+const {refundorder} = require('../Services/Order.service');
 const { PaymentValidation } = require('../Validators/payment.validator');
-const OrdersCollection = require("../models/Order.model");
+const OrdersCollection = require("../Models/order.model");
 const PaymentCollection = require("../Models/payment.model");
 const app = express();
 app.use(express.json());
+
 
 const payment = async (req, res) => {
   let { error, value } = await PaymentValidation(req.body);
@@ -35,6 +37,7 @@ const payment = async (req, res) => {
       /* Update the Order Statues to be done */
       order.OrderStatus = 'done';
       await order.save();
+
       /* creating a payment transaction */
     let createdtransaction = await PaymentCollection.create({
       VisaCardNumber:req.body.VisaCardNumber,
@@ -43,6 +46,7 @@ const payment = async (req, res) => {
       Order:order._id,
       User:user._id,
     });
+
      await res.send(createdtransaction);
     } catch (err) {
       res.status(400).send("sorry something went wrong");

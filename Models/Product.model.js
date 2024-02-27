@@ -5,7 +5,7 @@ const DBProductShema = mongoose.Schema({
     type: String,
     required: true,
     minLength: 3,
-    maxLength: 20,
+    maxLength: 100,
   },
   CategoryID: {
     required: true,
@@ -16,13 +16,13 @@ const DBProductShema = mongoose.Schema({
     type: String,
     required: true,
     minLength: 1,
-    maxLength: 100,
+    maxLength: 400,
   },
   productDescription: {
     type: String,
     required: true,
     minLength: 10,
-    maxLength: 200,
+    maxLength: 400,
   },
   productPrice: {
     type: Number,

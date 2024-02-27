@@ -10,7 +10,7 @@ const { CategoryEditValidation, CategoryValidation } = require("../Validators/Ca
 
 /* Get All categories */
 const GetAllCategory = (req, res) =>
-  CategoryCollection.find().then((Category) => res.send(Category));
+  CategoryCollection.find().select('-Products').then((Category) => res.send(Category));
 
 
 /* Get products of category */
@@ -33,30 +33,26 @@ const GetCategory = async (req, res) => {
 /* Add Category */
 const AddCategory = async (req, res) => {
   let { error, value } = await CategoryValidation(req.body);
-  if (error)  await res.status(400).send(error.details[0].message);
-    else {
-      try {
+  if (error) return await res.status(400).send(error.details[0].message);
 
+    try {
         /* check if the category exist */
-        let isCategoryExist = await CategoryCollection
-        .findOne({CategoryName : req.body.CategoryName}).exec();
-        if(isCategoryExist)
-         return res.status(400).send('This Category is already exist');
+        let isCategoryExist = await CategoryCollection.findOne({CategoryName : req.body.CategoryName}).exec();
+        if(isCategoryExist) return res.status(400).send('This Category is already exist');
         
         let createdcategory = await CategoryCollection.create(req.body);
         res.send(createdcategory);
         } catch (err) {
         res.status(400).send("sorry something went wrong");
     }
-  }
 };
 
 
 /* Edit a Category */
 const EditCategory = async (req, res) => {
   let { error, value } = await CategoryEditValidation(req.body);
-  if (error) await res.status(400).send(error.details[0].message);
-  else {
+  if (error) return await res.status(400).send(error.details[0].message);
+
     try {
       if(!isidValid(req.params.id))
           return res.status(400).send('category id is invalid');
@@ -69,7 +65,6 @@ const EditCategory = async (req, res) => {
     catch (err) {
       res.status(400).send("sorry something went wrong");
     }
-  }
 };
 
 

@@ -2,8 +2,8 @@ const joi = require("joi");
 
 let CategoryValidation = (category) => {
   categoryschema = joi.object({
-    CategoryName: joi.string().min(3).required(),
-    CategoryDescription: joi.string().min(10).required()
+    CategoryName: joi.string().min(3).max(50).required(),
+    CategoryDescription: joi.string().min(10).max(550).required()
   });
 
   return categoryschema.validate(category);
@@ -11,8 +11,8 @@ let CategoryValidation = (category) => {
 
 let CategoryEditValidation = (category) => {
   categoryschema = joi.object({
-    CategoryName: joi.string().min(3),
-    CategoryDescription: joi.string().min(10)
+    CategoryName: joi.string().min(3).max(50),
+    CategoryDescription: joi.string().min(10).max(550)
   });
   
   return categoryschema.validate(category);

@@ -14,7 +14,7 @@ const PaymentRouter = require('./Routes/payment.routes');
 const { SearchForProducts } = require('./Controllers/product.controller');
 const { auth } = require('./Middleware/auth');
 
-
+    
 app.use('/api/category',CategoryRouter);
 app.use('/api/products',ProductRouter);
 app.use('/api/payment',PaymentRouter);

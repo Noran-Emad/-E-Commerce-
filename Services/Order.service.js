@@ -1,9 +1,10 @@
-const ordersCollection = require("../models/Order.model");
+const ordersCollection = require("../Models/order.model");
 const ProductsCollection = require("../Models/Product.model");
 
 let AddFromCartToOrder = async (user,cart) => {
   /* create order and insert cart data into it */
   let neworder = await ordersCollection.create({
+    User:user._id,
     TotalPrice: cart.TotalPrice,
     Products: cart.CartProducts,
   });
@@ -52,7 +53,34 @@ let refundorder = async (user,req,res) => {
   return res.send(UpdatedOrder);
 }
 
+
+
+let refundorderTimeOut = async (user,orderid) => {
+  
+  let order = await ordersCollection.findOne({_id:orderid}).exec();
+  
+  if(order.OrderStatus !== 'pending') return;
+
+  /* change the order status to cancelled */
+  let UpdatedOrder = await ordersCollection.findOneAndUpdate(
+  {_id:orderid},{OrderStatus:'canceled'},{ new: true });
+
+  /* return back the taken order products quantity to the product quantity */
+  for (let orderitem of UpdatedOrder.Products) {
+    /* increase the stock with the cancelld order products quantity */
+    await ProductsCollection.findOneAndUpdate(
+      { _id: orderitem.Product }, 
+      { $inc: { productQuantity: orderitem.Quantity } }
+  );
+  }
+
+  await user.save();  
+}
+
+
+
 module.exports = {
   refundorder,
-  AddFromCartToOrder
+  AddFromCartToOrder,
+  refundorderTimeOut
 }

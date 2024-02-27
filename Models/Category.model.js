@@ -5,7 +5,13 @@ const DBCategoryShema = mongoose.Schema({
     type: String,
     required: true,
     minLength: 3,
-    maxLength: 20,
+    maxLength: 50,
+  },
+  CategoryDescription:{
+    type: String,
+    required: true,
+    minLength: 10,
+    maxLength: 550,
   },
   Products: [
     {
