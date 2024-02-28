@@ -78,9 +78,32 @@ let refundorderTimeOut = async (user,orderid) => {
 }
 
 
+let refundorderpayment = async (orderid) => {
+  
+  let order = await ordersCollection.findOne({_id:orderid}).exec();
+  
+  if(order.OrderStatus !== 'pending') return;
+
+  /* change the order status to cancelled */
+  let UpdatedOrder = await ordersCollection.findOneAndUpdate(
+  {_id:orderid},{OrderStatus:'canceled'},{ new: true });
+
+  /* return back the taken order products quantity to the product quantity */
+  for (let orderitem of UpdatedOrder.Products) {
+    /* increase the stock with the cancelld order products quantity */
+    await ProductsCollection.findOneAndUpdate(
+      { _id: orderitem.Product }, 
+      { $inc: { productQuantity: orderitem.Quantity } }
+  );
+  }
+
+  await order.save();  
+}
+
 
 module.exports = {
   refundorder,
   AddFromCartToOrder,
-  refundorderTimeOut
+  refundorderTimeOut,
+  refundorderpayment
 }

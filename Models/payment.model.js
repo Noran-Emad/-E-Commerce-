@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 // Define the Payment schema
 const paymentSchema = new mongoose.Schema({
+    _id: { 
+        type: String, 
+        required: true,
+    },
     User: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -12,24 +16,15 @@ const paymentSchema = new mongoose.Schema({
         ref: 'Order',
         required: true
     },
-    NameOnVisa:{
+    status:{
         type:String,
-        required:true,
-        minLength:3,
-        MaxLength:100
+        enum:['success','failed','pending'],
+        default:'pending'
     },
-    VisaCardNumber:{
-        type:Number,
-        required:true,
-        min:1000000000000000,
-        max:9999999999999999
-    },
-    Cvv:{
-        type:Number,
-        required:true,
-        min:100,
-        max:999
-    }
+    // TotalPrice:{
+    //     type:Number,
+    //     required:true
+    // }
 })
 
 // Export the Payment model
