@@ -3,6 +3,7 @@ const app = express();
 app.use(express.json());
 
 const CategoryCollection = require("../Models/Category.model");
+const ProductCollection = require("../Models/Product.model");
 const {isidValid} = require('../Services/validator.service');
 const { CategoryEditValidation, CategoryValidation } = require("../Validators/Category.validator");
 
@@ -19,11 +20,37 @@ const GetCategory = async (req, res) => {
     if(!isidValid(req.params.id))
         return res.status(400).send('category id is invalid');
 
-    let category = await CategoryCollection.findOne({_id:req.params.id}).populate('Products').exec();
+    let category = await CategoryCollection.findOne({_id:req.params.id}).select('-Products').exec();
         if(!category)
         return res.status(404).send('There is no Category with this id');
 
-    res.send(category)
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 30;
+    let sort = req.query.sort || 'Recommended';
+    
+    let SortedProducts;
+    switch(sort){
+      case 'Low':
+        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({productPrice:1}).limit(limit).skip((page-1) * limit);
+        break;
+      case 'High':
+        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({productPrice:-1}).limit(limit).skip((page-1) * limit);
+        break;
+      case 'Discounted':
+        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({Discount:-1}).limit(limit).skip((page-1) * limit);
+        break;
+      case 'New':
+        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({ createdAt: -1 }).limit(limit).skip((page-1) * limit);
+        break;
+      default:
+        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({Discount:-1}).limit(limit).skip((page-1) * limit);
+    }
+  
+    let totalCount =  await ProductCollection.find({CategoryID:req.params.id}).countDocuments();
+    let TotalPages = Math.ceil(totalCount/limit);
+  
+   res.send({Category:category,Products:SortedProducts,TotalPages:TotalPages});
+
   } catch (err) {
     res.status(400).send('sorry something went wrong');
   }

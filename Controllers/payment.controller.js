@@ -98,7 +98,7 @@ const payment = async (req, res) => {
           };
         }),
         mode: 'payment',
-        success_url: `http://localhost:3000/api/payment/success/${order._id}`,
+        success_url: `http://localhost:4200/`,
         cancel_url: `http://localhost:3000/api/payment/failed/${order._id}`,
         client_reference_id: order._id
       });
@@ -106,7 +106,7 @@ const payment = async (req, res) => {
       let payment = await PaymentCollection.create({_id:session.id,User:user._id,Order:order._id});
       
       res.send({
-       'buy from here': session.url,
+       'paymentlink': session.url,
        'payment':payment
       })
   }

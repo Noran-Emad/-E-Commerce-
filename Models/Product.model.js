@@ -30,6 +30,13 @@ const DBProductShema = mongoose.Schema({
     min: 1,
     default:0
   },
+  Discount: {
+    type: Number,
+    required: false,
+    min: 0,
+    max:100,
+    default:0
+  },
   productQuantity: {
     type: Number,
     required: true,

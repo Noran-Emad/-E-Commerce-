@@ -13,6 +13,12 @@ const DBCategoryShema = mongoose.Schema({
     minLength: 10,
     maxLength: 550,
   },
+  CategoryImage:{
+    type: String,
+    required: true,
+    minLength: 10,
+    maxLength: 550,
+  },
   Products: [
     {
       type: mongoose.Types.ObjectId,

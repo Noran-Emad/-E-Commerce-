@@ -58,8 +58,8 @@ let placeOrder = async (req, res) => {
   /* after making an order empty the cart and save the changes */
   cart.CartProducts = [];
   await cart.save();
-
-  /* Cancel the order if the user didn't pay */
+0.
+  /* Cancel the order if the user didn't pay */;
   setTimeout(() => {
     refundorderTimeOut(user,myorder._id);
   }, 600000);

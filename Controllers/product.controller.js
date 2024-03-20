@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-const { ProductEditValidation, ProductValidation,} = require("../Validators/Product.validator");
+const { ProductEditValidation, ProductValidation, } = require("../Validators/Product.validator");
 const ProductCollection = require("../Models/Product.model");
 const CategoryCollection = require("../Models/Category.model");
 const { isidValid } = require("../Services/validator.service");
@@ -10,25 +10,85 @@ const { isidValid } = require("../Services/validator.service");
 
 
 /* Get All Products */
-const GetAllProducts = (req, res) =>
-  ProductCollection.find().then((products) => res.send(products));
+const GetAllProducts = async (req, res) => {
+
+  try {
+
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 2;
+    let sort = req.query.sort || 'Recommended';
+
+    let pipeline = [];
+
+    switch (sort) {
+      case 'Low':
+        pipeline.push(
+          { $sort: { productPrice: 1 } },
+          { $limit: limit },
+          { $skip: (page - 1) * limit }
+        );
+        break;
+      case 'High':
+        pipeline.push(
+          { $sort: { productPrice: -1 } },
+          { $limit: limit },
+          { $skip: (page - 1) * limit }
+        );
+        break;
+      case 'Discounted':
+        pipeline.push(
+          { $sort: { Discount: -1 } },
+          { $limit: limit },
+          { $skip: (page - 1) * limit }
+        );
+        break;
+      case 'New':
+        pipeline.push(
+          { $sort: { createdAt: -1 } },
+          { $limit: limit },
+          { $skip: (page - 1) * limit }
+        );
+        break;
+      default:
+        pipeline.push(
+          { $sort: { Discount: -1 } },
+          { $limit: limit },
+          { $skip: (page - 1) * limit }
+        );
+    }
+
+    pipeline.push(
+      { $lookup: { from: 'reviews', localField: '_id', foreignField: 'Product', as: 'reviews', }, },
+      { $addFields: { AverageRating: { $avg: '$reviews.Rating' }, }, }
+    );
+
+    let products = await ProductCollection.aggregate(pipeline);
+    let totalCount = await ProductCollection.countDocuments();
+    let totalPages = Math.ceil(totalCount / limit);
+
+    res.send({ Products: products, TotalPages: totalPages });
+
+  } catch (err) {
+    res.status(400).send("sorry something went wrong");
+  }
+}
 
 
 /* Get Product */
 const GetProduct = async (req, res) => {
-  // try {
+  try {
 
     /* if user enters invalid product id in request paramter */
-    if(!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
-    
-    let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID","CategoryName").exec();
-    
-    if(!product) return res.status(404).send("There is no Product with id");
+    if (!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
+
+    let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID", "CategoryName").exec();
+
+    if (!product) return res.status(404).send("There is no Product with id");
     res.send(product);
-    
-  // } catch (err) {
-  //   res.status(400).send("sorry something went wrong");
-  // }
+
+  } catch (err) {
+    res.status(400).send("sorry something went wrong");
+  }
 };
 
 
@@ -41,11 +101,11 @@ const AddProduct = async (req, res) => {
     try {
 
       /* if user enters invalid category id */
-      if(!isidValid(req.body.CategoryID))
-      return res.status(400).send("Category id is invalid");
-    
+      if (!isidValid(req.body.CategoryID))
+        return res.status(400).send("Category id is invalid");
+
       let category = await CategoryCollection.findById(req.body.CategoryID);
-      if(!category)
+      if (!category)
         return res.status(400).send("there is no Category exist with that id");
 
       let createdproduct = await ProductCollection.create(req.body);
@@ -68,14 +128,14 @@ const EditProduct = async (req, res) => {
   else {
     try {
       /* if user enters invalid product id in request paramter */
-      if(!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
-      
+      if (!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
+
       let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID").exec();
-      
-      if(!product) return res.status(404).send("There is no Product with id");
-      let updatedproduct = await ProductCollection.findOneAndUpdate({ _id: req.params.id }, req.body,{ new: true });
+
+      if (!product) return res.status(404).send("There is no Product with id");
+      let updatedproduct = await ProductCollection.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true });
       res.send(updatedproduct);
-      
+
     } catch (err) {
       res.status(400).send("sorry something went wrong");
     }
@@ -86,19 +146,19 @@ const EditProduct = async (req, res) => {
 
 /* Delete a Product */
 const DeleteProduct = async (req, res) => {
-    try {
-      /* if user enters invalid product id in request paramter */
-      if(!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
-      
-      let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID","CategoryName").exec();
-      
-      if(!product) return res.status(404).send("There is no Product with id");
-      await ProductCollection.findByIdAndDelete({ _id: req.params.id }, req.body);
-      res.send(product);
-      
-    } catch (err) {
-      res.status(400).send("sorry something went wrong");
-    }
+  try {
+    /* if user enters invalid product id in request paramter */
+    if (!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
+
+    let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID", "CategoryName").exec();
+
+    if (!product) return res.status(404).send("There is no Product with id");
+    await ProductCollection.findByIdAndDelete({ _id: req.params.id }, req.body);
+    res.send(product);
+
+  } catch (err) {
+    res.status(400).send("sorry something went wrong");
+  }
 };
 
 
