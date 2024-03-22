@@ -5,6 +5,7 @@ app.use(express.json());
 const { ProductEditValidation, ProductValidation, } = require("../Validators/Product.validator");
 const ProductCollection = require("../Models/Product.model");
 const CategoryCollection = require("../Models/Category.model");
+const ReviewsCollection = require("../Models/Review.model");
 const { isidValid } = require("../Services/validator.service");
 
 
@@ -24,36 +25,36 @@ const GetAllProducts = async (req, res) => {
       case 'Low':
         pipeline.push(
           { $sort: { productPrice: 1 } },
+          { $skip: (page - 1) * limit },
           { $limit: limit },
-          { $skip: (page - 1) * limit }
         );
         break;
       case 'High':
         pipeline.push(
           { $sort: { productPrice: -1 } },
+          { $skip: (page - 1) * limit },
           { $limit: limit },
-          { $skip: (page - 1) * limit }
         );
         break;
       case 'Discounted':
         pipeline.push(
           { $sort: { Discount: -1 } },
+          { $skip: (page - 1) * limit },
           { $limit: limit },
-          { $skip: (page - 1) * limit }
         );
         break;
       case 'New':
         pipeline.push(
           { $sort: { createdAt: -1 } },
+          { $skip: (page - 1) * limit },
           { $limit: limit },
-          { $skip: (page - 1) * limit }
         );
         break;
       default:
         pipeline.push(
           { $sort: { Discount: -1 } },
+          { $skip: (page - 1) * limit },
           { $limit: limit },
-          { $skip: (page - 1) * limit }
         );
     }
 
@@ -84,7 +85,10 @@ const GetProduct = async (req, res) => {
     let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID", "CategoryName").exec();
 
     if (!product) return res.status(404).send("There is no Product with id");
-    res.send(product);
+
+    let reviews = await ReviewsCollection.find({ Product: product._id }).populate("User", "name email");
+  
+    res.send({ product: product, reviews: reviews });
 
   } catch (err) {
     res.status(400).send("sorry something went wrong");

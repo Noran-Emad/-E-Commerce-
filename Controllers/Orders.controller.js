@@ -16,6 +16,21 @@ let GetAllOrders = async (req, res) =>
   OrdersCollection.find().then((orders) => res.send(orders));
 
   
+/* get user orders */
+let GetUserOrders = async(req,res) =>{
+  try{
+    let user = await getUserfromJWT(req.headers.jwt, res);
+    if(!user) return;
+    
+    let order = await OrdersCollection.find({ 'User': user._id }).populate('Products.Product','ProductName productImage');
+    res.send(order);
+
+  }catch{
+    res.status(400).send('sorry something went wrong')
+  }
+}
+
+
 /* get an orders */
 let GetOrder = async (req,res)=>{
   try{
@@ -58,7 +73,7 @@ let placeOrder = async (req, res) => {
   /* after making an order empty the cart and save the changes */
   cart.CartProducts = [];
   await cart.save();
-0.
+
   /* Cancel the order if the user didn't pay */;
   setTimeout(() => {
     refundorderTimeOut(user,myorder._id);
@@ -89,4 +104,5 @@ module.exports = {
   placeOrder,
   CancelOrder,
   GetAllOrders,
+  GetUserOrders
 };

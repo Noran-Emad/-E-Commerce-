@@ -13,7 +13,6 @@ const DBReviewShema = mongoose.Schema({
   },
   Title: {
     type: String,
-    minLength: 3,
     manLength: 400,
   },
   Rating: {

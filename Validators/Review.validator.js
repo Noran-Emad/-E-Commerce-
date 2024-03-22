@@ -2,7 +2,7 @@ const joi = require("joi");
 
 let VAddReview = (review) => {
   const ReviewSchema = joi.object({
-    Title: joi.string().min(3).max(400).required(),
+    Title: joi.string().max(400).required(),
   });
 
  return ReviewSchema.validate(review);

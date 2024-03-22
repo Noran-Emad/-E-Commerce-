@@ -1,7 +1,7 @@
 const express = require('express');
 const { getUserfromJWT } = require('../Services/validator.service');
 const { isidValid } = require('../Services/validator.service');
-const {refundorder, refundorderpayment} = require('../Services/Order.service');
+const {refundorderpayment} = require('../Services/Order.service');
 const OrdersCollection = require("../Models/order.model");
 const PaymentCollection = require("../Models/payment.model");
 const { default: Stripe } = require('stripe');
@@ -9,7 +9,6 @@ const ProductModel = require('../Models/Product.model');
 const app = express();
 app.use(express.json());
 const stripe = require('stripe')('sk_test_51OoqmoFEukyPARz9iHniLJZCKXAZ4bOaDGDAEsS0VcPdiULDZJLYy38PrtpXL7b7O9rAOeKEX0Jq30rUk1Zu71j000Bp7JydvH');
-
 
 
 
@@ -30,8 +29,8 @@ const successpayment = async (req, res) => {
       payment.status = 'success';
       order.save();
       payment.save();
-      res.send(payment);
-}
+      res.redirect('http://localhost:4200/');
+    }
 
 
 
@@ -55,7 +54,7 @@ const failedpayment = async (req, res) => {
   payment.status = 'failed';
   order.save();
   payment.save();
-  res.send(payment);
+  res.redirect('http://localhost:4200/orders');
 }
 
 
@@ -98,7 +97,7 @@ const payment = async (req, res) => {
           };
         }),
         mode: 'payment',
-        success_url: `http://localhost:4200/`,
+        success_url: `http://localhost:3000/api/payment/success/${order._id}`,
         cancel_url: `http://localhost:3000/api/payment/failed/${order._id}`,
         client_reference_id: order._id
       });
