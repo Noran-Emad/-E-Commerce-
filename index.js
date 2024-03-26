@@ -26,4 +26,8 @@ app.use('/api/admin',AdminRouter);
 app.use('/api/order',OrderRouter);
 app.use('/api/cart',CartRouter);
 app.use('/api/user',userRouter);
-app.listen(process.env.PORT);
+// app.listen(process.env.PORT);
+
+app.listen(3000, () => {
+    console.log(`server connection with port number: `);
+});

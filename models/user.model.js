@@ -23,8 +23,7 @@ const userSchema = new mongoose.Schema({
   },
   address: {
     type: String,
-    required: true,
-    minLength: 5,
+    default: "",
     maxLength: 250,
   },
   Cart: {
