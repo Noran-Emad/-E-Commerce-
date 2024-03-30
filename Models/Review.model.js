@@ -12,10 +12,12 @@ const DBReviewShema = mongoose.Schema({
     ref: "Product",
   },
   Title: {
+    required: true,
     type: String,
     manLength: 400,
   },
   Rating: {
+    required: true,
     type: Number,
     min: 1,
     max: 5,

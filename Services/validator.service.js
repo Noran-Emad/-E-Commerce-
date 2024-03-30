@@ -26,7 +26,18 @@ let getUserfromJWT = async (token, res) => {
   return false;
 };
 
+let getUserfromJWTDefult = async (token) => {
+  try {
+    let { email } = jwt.verify(token, process.env.jwtkey);
+    let user = await UsersCollection.findOne({email:email}).exec();
+    return user;
+  } catch (err) {
+    return null;
+  }
+};
+
 module.exports = {
   isidValid,
   getUserfromJWT,
+  getUserfromJWTDefult
 };

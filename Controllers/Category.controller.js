@@ -6,6 +6,7 @@ const CategoryCollection = require("../Models/Category.model");
 const ProductCollection = require("../Models/Product.model");
 const {isidValid} = require('../Services/validator.service');
 const { CategoryEditValidation, CategoryValidation } = require("../Validators/Category.validator");
+const { default: mongoose } = require("mongoose");
 
 
 
@@ -27,34 +28,42 @@ const GetCategory = async (req, res) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 30;
     let sort = req.query.sort || 'Recommended';
-    
-    let SortedProducts;
-    switch(sort){
+    let pipeline = [];
+    switch (sort) {
       case 'Low':
-        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({productPrice:1}).limit(limit).skip((page-1) * limit);
+        pipeline.push({ $sort: { productPrice: 1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
         break;
       case 'High':
-        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({productPrice:-1}).limit(limit).skip((page-1) * limit);
+        pipeline.push({ $sort: { productPrice: -1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
         break;
       case 'Discounted':
-        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({Discount:-1}).limit(limit).skip((page-1) * limit);
+        pipeline.push({ $sort: { Discount: -1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
         break;
       case 'New':
-        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({ createdAt: -1 }).limit(limit).skip((page-1) * limit);
+        pipeline.push({ $sort: { createdAt: -1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
         break;
       default:
-        SortedProducts = await ProductCollection.find({CategoryID:req.params.id}).sort({Discount:-1}).limit(limit).skip((page-1) * limit);
+        pipeline.push({ $sort: { Discount: -1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
     }
-  
+    
+    pipeline.push(
+      { $match: { CategoryID:new mongoose.Types.ObjectId(req.params.id) } },
+      { $lookup: { from: 'reviews', localField: '_id', foreignField: 'Product', as: 'reviews'} },
+      { $addFields: { AverageRating: { $round: [{ $avg: '$reviews.Rating' }, 1] }} }
+    );
+    
+    
     let totalCount =  await ProductCollection.find({CategoryID:req.params.id}).countDocuments();
     let TotalPages = Math.ceil(totalCount/limit);
-  
-   res.send({Category:category,Products:SortedProducts,TotalPages:TotalPages});
+    let products = await ProductCollection.aggregate(pipeline);
+
+   res.send({Category:category,Products:products,TotalPages:TotalPages});
 
   } catch (err) {
     res.status(400).send('sorry something went wrong');
   }
 };
+
 
 
 /* Add Category */

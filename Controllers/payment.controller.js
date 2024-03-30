@@ -25,11 +25,9 @@ const successpayment = async (req, res) => {
       /* if the order is done or cancelld */
       if(order.OrderStatus !== 'pending')
       return res.status(400).send(`the order status is already ${order.OrderStatus}`)
-      order.OrderStatus = 'done';
       payment.status = 'success';
-      order.save();
       payment.save();
-      res.redirect('http://localhost:4200/');
+      res.redirect(`http://localhost:4200/payment/${payment._id}`);
     }
 
 
@@ -52,9 +50,8 @@ const failedpayment = async (req, res) => {
 
   await refundorderpayment(order);
   payment.status = 'failed';
-  order.save();
   payment.save();
-  res.redirect('http://localhost:4200/orders');
+  res.redirect(`http://localhost:4200/payment/${payment._id}`);
 }
 
 
@@ -112,10 +109,16 @@ const payment = async (req, res) => {
 
   /* check payment result by order id */
   const PaymentStatus = async (req,res) =>{
-    let payment = await PaymentCollection.findOne({Order:req.params.id}).exec();
-    if(!payment) return res.status(404).send("there is no payment exist with that id");
+  let user = await getUserfromJWT(req.headers.jwt, res);
+  if (!user) return;  
 
-    return res.send(`the payment status is ${payment.status}`)
+  let payment = await PaymentCollection.findOne({ _id: req.params.id });
+  if(!payment) return res.status(404).send("there is no payment exist with that id");
+
+  if(!user._id.equals(payment.User._id))
+  return res.status(404).send("there is no payment matchs this user payment");
+
+  res.send(payment);
   }
 
 module.exports={payment,successpayment,failedpayment,PaymentStatus}

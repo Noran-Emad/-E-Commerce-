@@ -21,9 +21,15 @@ let GetUserOrders = async(req,res) =>{
   try{
     let user = await getUserfromJWT(req.headers.jwt, res);
     if(!user) return;
+    let page = parseInt(req.query.page) || 1;
     
-    let order = await OrdersCollection.find({ 'User': user._id }).populate('Products.Product','ProductName productImage');
-    res.send(order);
+    let order = await OrdersCollection.find({ 'User': user._id })
+    .populate('Products.Product','ProductName productImage').skip((page-1) * 3).limit(3);
+    
+    let total = await OrdersCollection.find({ 'User': user._id }).countDocuments();
+    let totalPages = Math.ceil(total / 3);
+
+    res.send({order,TotalPages:totalPages});
 
   }catch{
     res.status(400).send('sorry something went wrong')
@@ -99,10 +105,40 @@ let CancelOrder = async (req,res) =>{
   }
 }
 
+/* confirm order */
+let confirmOrder = async (req,res) =>{
+  try{
+    /* check if the order id is valid */
+    if(!isidValid(req.params.id))
+    return res.status(400).send('order id is invalid');
+  
+    /* get the user from jwt header and check it's validation */
+    let user = await getUserfromJWT(req.headers.jwt, res);
+    if(!user) return;
+    
+    let isOrderExist = (user.Orders).some(orders => (orders._id).toString() === req.params.id);
+    if(!isOrderExist) return res.status(404).send('you have no order with this id');
+
+    let order = await ordersCollection.findOne({_id:req.params.id}).exec();
+
+    if(order.OrderStatus !== 'pending')
+    return res.status(400).send(`the order status is already ${order.OrderStatus}`)
+
+    let UpdatedOrder = await ordersCollection.findOneAndUpdate(
+      {_id:req.params.id},{OrderStatus:'done'},{ new: true });
+
+      await user.save();  
+      return res.send(UpdatedOrder);
+  } catch(err) {
+    res.status(400).send('sorry something went wrong')
+  }
+}
+
 module.exports = {
   GetOrder,
   placeOrder,
   CancelOrder,
   GetAllOrders,
-  GetUserOrders
+  GetUserOrders,
+  confirmOrder
 };

@@ -7,6 +7,7 @@ const ProductCollection = require("../Models/Product.model");
 const CategoryCollection = require("../Models/Category.model");
 const ReviewsCollection = require("../Models/Review.model");
 const { isidValid } = require("../Services/validator.service");
+const { default: mongoose } = require("mongoose");
 
 
 
@@ -23,44 +24,24 @@ const GetAllProducts = async (req, res) => {
 
     switch (sort) {
       case 'Low':
-        pipeline.push(
-          { $sort: { productPrice: 1 } },
-          { $skip: (page - 1) * limit },
-          { $limit: limit },
-        );
+        pipeline.push({ $sort: { productPrice: 1 } },{ $skip: (page - 1) * limit },{ $limit: limit });
         break;
       case 'High':
-        pipeline.push(
-          { $sort: { productPrice: -1 } },
-          { $skip: (page - 1) * limit },
-          { $limit: limit },
-        );
+        pipeline.push({ $sort: { productPrice: -1 } },{ $skip: (page - 1) * limit },{ $limit: limit });
         break;
       case 'Discounted':
-        pipeline.push(
-          { $sort: { Discount: -1 } },
-          { $skip: (page - 1) * limit },
-          { $limit: limit },
-        );
+        pipeline.push({ $sort: { Discount: -1 } },{ $skip: (page - 1) * limit },{ $limit: limit });
         break;
       case 'New':
-        pipeline.push(
-          { $sort: { createdAt: -1 } },
-          { $skip: (page - 1) * limit },
-          { $limit: limit },
-        );
+        pipeline.push({ $sort: { createdAt: -1 } },{ $skip: (page - 1) * limit },{ $limit: limit });
         break;
       default:
-        pipeline.push(
-          { $sort: { Discount: -1 } },
-          { $skip: (page - 1) * limit },
-          { $limit: limit },
-        );
+        pipeline.push({ $sort: { Discount: -1 } },{ $skip: (page - 1) * limit },{ $limit: limit });
     }
 
     pipeline.push(
-      { $lookup: { from: 'reviews', localField: '_id', foreignField: 'Product', as: 'reviews', }, },
-      { $addFields: { AverageRating: { $avg: '$reviews.Rating' }, }, }
+      { $lookup: { from: 'reviews', localField: '_id', foreignField: 'Product', as: 'reviews'} },
+      { $addFields: {  AverageRating: { $round: [{ $avg: '$reviews.Rating' }, 1] }} }
     );
 
     let products = await ProductCollection.aggregate(pipeline);
@@ -86,9 +67,21 @@ const GetProduct = async (req, res) => {
 
     if (!product) return res.status(404).send("There is no Product with id");
 
-    let reviews = await ReviewsCollection.find({ Product: product._id }).populate("User", "name email");
   
-    res.send({ product: product, reviews: reviews });
+    let averageRatingPipeline = [
+      {$match: { Product:new mongoose.Types.ObjectId(req.params.id) }},
+      {$group: {_id: null,averageRating: { $avg: "$Rating" }}}
+    ];
+
+    let result = await ReviewsCollection.aggregate(averageRatingPipeline);
+    let rate = result.length > 0 ? result[0].averageRating : 0;
+
+
+     product = product.toObject(); 
+     product.rate = rate;
+
+
+    res.send(product);
 
   } catch (err) {
     res.status(400).send("sorry something went wrong");

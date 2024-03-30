@@ -1,22 +1,14 @@
 const joi = require("joi");
 
-let VAddReview = (review) => {
+let AddReviewValidation = (review) => {
   const ReviewSchema = joi.object({
     Title: joi.string().max(400).required(),
-  });
-
- return ReviewSchema.validate(review);
-};
-
-let VAddRating = (rate) => {
-  const RatingSchema = joi.object({
     Rating: joi.number().integer().min(1).max(5).required(),
   });
-
- return RatingSchema.validate(rate);
+  
+  return ReviewSchema.validate(review);
 };
 
 module.exports = {
-  VAddReview,
-  VAddRating
+  AddReviewValidation,
 };

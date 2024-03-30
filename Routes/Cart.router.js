@@ -1,11 +1,13 @@
 const express = require("express")
 const router = express.Router();
-const { GetCart, AddToCart, clearcart, removefromCart,EditCart } = require("../Controllers/Cart.controller");
+const { GetCart, AddToCart, clearcart, removefromCart,EditCart, AssignLocalCCart } = require("../Controllers/Cart.controller");
 
 
 router.get('/',GetCart);
 
 router.post('/add',AddToCart);
+
+router.post('/addlocal',AssignLocalCCart);
 
 router.delete('/clear',clearcart);
 

@@ -31,10 +31,8 @@ const GetCart = async (req, res) => {
 /* Add a Product To Cart */
 const AddToCart = async (req, res) => {
   let { error, value } = await AddToCartValidation(req.body);
+  if (error) return await res.status(400).send(error.details[0].message);
 
-  if (error) {
-    await res.status(400).send(error.details[0].message);
-  } else {
     try {
       /* get the user from jwt header and check it's validation */
       let user = await getUserfromJWT(req.headers.jwt, res);
@@ -59,13 +57,8 @@ const AddToCart = async (req, res) => {
 
         if (existedproduct) {
           /* if product exist and quantity can be added increase the quantity not add new product */
-          if (existedproduct.Quantity + value.Quantity <= product.productQuantity) {
-            existedproduct.Quantity += value.Quantity;
-          } else {
-            /* if product exist but the quantity will be more than the stock */
-            res.status(400).send("there is no enough quantity of this product in the stock");
-            return;
-          }
+            existedproduct.Quantity = +value.Quantity;
+
         } else {
           /* if product isn't exist add the product in the cart array */
           cart.CartProducts.push({
@@ -81,9 +74,41 @@ const AddToCart = async (req, res) => {
     } catch (err) {
       res.status(400).send("sorry something went wrong");
     }
-  }
 };
 
+const AssignLocalCCart = async(req,res) =>{
+  // try{
+
+    let localcart = req.body;
+    let user = await getUserfromJWT(req.headers.jwt, res);
+    if (!user) return;
+    let cart = await CartCollection.findOne(user.Cart).populate('CartProducts.Product').exec();
+    
+    for(let i=0;i<localcart.length;i++){
+      
+      let product = await ProductCollection.findById(localcart[i].Product._id).exec();
+      if (!product || +product.productQuantity < +localcart[i].Quantity) continue;
+      
+      let existedproduct = cart.CartProducts.find((obj) =>(product._id).equals(obj.Product._id));
+      /* if product exist and quantity can be added increase the quantity not add new product */
+      if (existedproduct){
+        existedproduct.Quantity = +localcart[i].Quantity;
+  } else {
+    /* if product isn't exist add the product in the cart array */
+    cart.CartProducts.push({
+      Product: product._id,
+      Quantity: localcart[i].Quantity,
+    });
+  }
+}
+
+await cart.save();
+await res.send('done')
+
+// }catch(err){
+//   res.status(400).send("sorry something went wrong");
+// }
+}
 
 /* Edit a product in the Cart */
 const EditCart = async (req, res) => {
@@ -192,5 +217,6 @@ module.exports = {
   EditCart,
   AddToCart,
   removefromCart,
+  AssignLocalCCart,
   clearcart,
 };
