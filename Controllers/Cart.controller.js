@@ -77,7 +77,7 @@ const AddToCart = async (req, res) => {
 };
 
 const AssignLocalCCart = async(req,res) =>{
-  // try{
+  try{
 
     let localcart = req.body;
     let user = await getUserfromJWT(req.headers.jwt, res);
@@ -105,9 +105,9 @@ const AssignLocalCCart = async(req,res) =>{
 await cart.save();
 await res.send('done')
 
-// }catch(err){
-//   res.status(400).send("sorry something went wrong");
-// }
+}catch(err){
+  res.status(400).send("sorry something went wrong");
+}
 }
 
 /* Edit a product in the Cart */

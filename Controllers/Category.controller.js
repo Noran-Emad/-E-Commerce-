@@ -21,50 +21,51 @@ const GetCategory = async (req, res) => {
     if(!isidValid(req.params.id))
         return res.status(400).send('category id is invalid');
 
-    let category = await CategoryCollection.findOne({_id:req.params.id}).select('-Products').exec();
-        if(!category)
-        return res.status(404).send('There is no Category with this id');
+          let category = await CategoryCollection.findOne({_id: req.params.id});
+          if (!category)
+              return res.status(404).send('There is no Category with this id');
+      
+          let page = parseInt(req.query.page) || 1;
+          let limit = parseInt(req.query.limit) || 30;
+          let sort = req.query.sort || 'Discounted';
+      
+          let pipeline = [
+              { $match: { CategoryID: new mongoose.Types.ObjectId(req.params.id) } },
+              { $sort: getSortStage(sort) },
+              { $skip: (page - 1) * limit },
+              { $limit: limit },
+              { $lookup: { from: 'reviews', localField: '_id', foreignField: 'Product', as: 'reviews' } },
+              { $addFields: { AverageRating: { $avg: '$reviews.Rating' } } }
+          ];
+      
+          let products = await ProductCollection.aggregate(pipeline);
+          let totalCount = await ProductCollection.countDocuments({ CategoryID: req.params.id });
+          let totalPages = Math.ceil(totalCount / limit);
+      
+          res.send({ Category: category, Products: products, TotalPages: totalPages });
 
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 30;
-    let sort = req.query.sort || 'Recommended';
-    let pipeline = [];
-    switch (sort) {
-      case 'Low':
-        pipeline.push({ $sort: { productPrice: 1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
-        break;
-      case 'High':
-        pipeline.push({ $sort: { productPrice: -1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
-        break;
-      case 'Discounted':
-        pipeline.push({ $sort: { Discount: -1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
-        break;
-      case 'New':
-        pipeline.push({ $sort: { createdAt: -1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
-        break;
-      default:
-        pipeline.push({ $sort: { Discount: -1 } }, { $skip: (page - 1) * limit }, { $limit: limit });
-    }
-    
-    pipeline.push(
-      { $match: { CategoryID:new mongoose.Types.ObjectId(req.params.id) } },
-      { $lookup: { from: 'reviews', localField: '_id', foreignField: 'Product', as: 'reviews'} },
-      { $addFields: { AverageRating: { $round: [{ $avg: '$reviews.Rating' }, 1] }} }
-    );
-    
-    
-    let totalCount =  await ProductCollection.find({CategoryID:req.params.id}).countDocuments();
-    let TotalPages = Math.ceil(totalCount/limit);
-    let products = await ProductCollection.aggregate(pipeline);
 
-   res.send({Category:category,Products:products,TotalPages:TotalPages});
+      
 
   } catch (err) {
     res.status(400).send('sorry something went wrong');
   }
 };
 
-
+function getSortStage(sort) {
+  switch (sort) {
+      case 'Low':
+          return { productPrice: 1 };
+      case 'High':
+          return { productPrice: -1 };
+      case 'Discounted':
+          return { Discount: -1 };
+      case 'New':
+          return { createdAt: -1 };
+      default:
+          return { Discount: -1 };
+  }
+}
 
 /* Add Category */
 const AddCategory = async (req, res) => {
