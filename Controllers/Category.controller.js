@@ -28,9 +28,9 @@ const GetCategory = async (req, res) => {
           let page = parseInt(req.query.page) || 1;
           let limit = parseInt(req.query.limit) || 30;
           let sort = req.query.sort || 'Discounted';
-      
+
           let pipeline = [
-              { $match: { CategoryID: new mongoose.Types.ObjectId(req.params.id) } },
+              { $match: { CategoryID: new mongoose.Types.ObjectId(req.params.id),isDeleted: false }  },
               { $sort: getSortStage(sort) },
               { $skip: (page - 1) * limit },
               { $limit: limit },

@@ -38,6 +38,7 @@ const GetAllProducts = async (req, res) => {
       default:
         pipeline.push({ $sort: { Discount: -1 } },{ $skip: (page - 1) * limit },{ $limit: limit });
     }
+    pipeline.push({ $match: { isDeleted: false } });
 
     pipeline.push(
       { $lookup: { from: 'reviews', localField: '_id', foreignField: 'Product', as: 'reviews'} },
@@ -63,7 +64,7 @@ const GetProduct = async (req, res) => {
     /* if user enters invalid product id in request paramter */
     if (!isidValid(req.params.id)) return res.status(400).send("product id is invalid");
 
-    let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID", "CategoryName").exec();
+    let product = await ProductCollection.findOne({ _id: req.params.id,isDeleted: false }).populate("CategoryID", "CategoryName").exec();
 
     if (!product) return res.status(404).send("There is no Product with id");
 
@@ -150,7 +151,9 @@ const DeleteProduct = async (req, res) => {
     let product = await ProductCollection.findOne({ _id: req.params.id }).populate("CategoryID", "CategoryName").exec();
 
     if (!product) return res.status(404).send("There is no Product with id");
-    await ProductCollection.findByIdAndDelete({ _id: req.params.id }, req.body);
+    
+    product.isDeleted = true;
+    await product.save();
     res.send(product);
 
   } catch (err) {

@@ -43,6 +43,10 @@ const DBProductShema = mongoose.Schema({
     min: 0,
     default:0
   },
+  isDeleted:{
+    type:Boolean,
+    default:false,
+  }
 });
 
 module.exports = mongoose.model("Product", DBProductShema);
