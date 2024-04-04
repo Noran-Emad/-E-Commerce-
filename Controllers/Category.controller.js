@@ -39,7 +39,8 @@ const GetCategory = async (req, res) => {
           ];
       
           let products = await ProductCollection.aggregate(pipeline);
-          let totalCount = await ProductCollection.countDocuments({ CategoryID: req.params.id });
+          let totalCount = await ProductCollection.countDocuments({ CategoryID: req.params.id ,isDeleted: false});
+
           let totalPages = Math.ceil(totalCount / limit);
       
           res.send({ Category: category, Products: products, TotalPages: totalPages });
