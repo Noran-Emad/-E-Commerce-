@@ -14,7 +14,7 @@ const User = require("../Models/user.model");
 // Function to create new user
 const createNewUser = async (req, res) => {
   try {
-    const { name, email, password, address } = req.body;
+    const { name, email, password, address} = req.body;
     const { error } = validateNewUser(req.body);
 
     if (error) {
@@ -23,7 +23,7 @@ const createNewUser = async (req, res) => {
 
     const user = await findUserService(email);
     if (user) {
-      return res.send({
+      return res.status(409).send({
         message:
           "Email already exists. Please use a different email or login to your account.",
       });
@@ -34,7 +34,7 @@ const createNewUser = async (req, res) => {
       name,
       email,
       passwordHash,
-      address,
+      address
     });
     res.send(newUser);
   } catch (e) {
@@ -79,6 +79,7 @@ const getUserProfile = async (req, res) => {
       name: req.user.name,
       email: req.user.email,
       address: req.user.address,
+      phoneNumber: req.user.phoneNumber
     });
   } catch (e) {
     res.status(500).send(e.message);
@@ -88,11 +89,13 @@ const getUserProfile = async (req, res) => {
 // Function to update user profile
 const updateUserProfile = async (req, res) => {
   try {
-    const { error, value } = validateUpdateUser(req.body);
 
-    if (error) {
-      return res.status(400).send({ message: error.message.replace(/"/g, "") });
-    }
+   
+    const {error,value}=validateUpdateUser(req.body);
+        if(error){
+            res.status(400).send({message:"Invalid form field.."})
+            return;
+        }
 
     const user = req.user;
     const email = user.email;

@@ -16,7 +16,8 @@ const validateUpdateUser = (user) => {
         name: joi.string().min(3).max(50),
         email: joi.string().email(),
         password: joi.string().min(8).max(1024),
-        address: joi.string().min(5).max(250)
+        address: joi.string().min(5).max(250),
+        phoneNumber: joi.string().max(11)
     })
 
     return schema.validate(user);   
