@@ -21,6 +21,7 @@ const GetAllProducts = async (req, res) => {
     let sort = req.query.sort || 'Recommended';
 
     let pipeline = [];
+    pipeline.push({ $match: { isDeleted: false } });
 
     switch (sort) {
       case 'Low':
@@ -38,7 +39,6 @@ const GetAllProducts = async (req, res) => {
       default:
         pipeline.push({ $sort: { Discount: -1 } },{ $skip: (page - 1) * limit },{ $limit: limit });
     }
-    pipeline.push({ $match: { isDeleted: false } });
 
     pipeline.push(
       { $lookup: { from: 'reviews', localField: '_id', foreignField: 'Product', as: 'reviews'} },
@@ -46,7 +46,7 @@ const GetAllProducts = async (req, res) => {
     );
 
     let products = await ProductCollection.aggregate(pipeline);
-    let totalCount = await ProductCollection.countDocuments();
+    let totalCount = await ProductCollection.countDocuments({ isDeleted: false });
     let totalPages = Math.ceil(totalCount / limit);
 
     res.send({ Products: products, TotalPages: totalPages });
