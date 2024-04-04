@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
   },
   address: {
     type: String,
-    required: true,
+    defualt: "",
     minLength: 5,
     maxLength: 250,
   },

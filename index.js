@@ -16,14 +16,14 @@ const PaymentRouter = require('./Routes/payment.routes');
 const { SearchForProducts } = require('./Controllers/product.controller');
 const { auth } = require('./Middleware/auth');
 
-    
-app.use('/api/category',CategoryRouter);
-app.use('/api/products',ProductRouter);
-app.use('/api/payment',PaymentRouter);
-app.use('/api/search',SearchForProducts)
-app.use('/api/Review',ReviewRouter);
-app.use('/api/admin',AdminRouter);
-app.use('/api/order',OrderRouter);
-app.use('/api/cart',CartRouter);
-app.use('/api/user',userRouter);
-app.listen(process.env.PORT);
+
+app.use('/api/category', CategoryRouter);
+app.use('/api/products', ProductRouter);
+app.use('/api/payment', PaymentRouter);
+app.use('/api/search', SearchForProducts)
+app.use('/api/Review', ReviewRouter);
+app.use('/api/admin', AdminRouter);
+app.use('/api/order', OrderRouter);
+app.use('/api/cart', CartRouter);
+app.use('/api/user', userRouter);
+app.listen(process.env.PORT);   

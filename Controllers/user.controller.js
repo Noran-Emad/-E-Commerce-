@@ -14,7 +14,7 @@ const User = require("../Models/user.model");
 // Function to create new user
 const createNewUser = async (req, res) => {
   try {
-    const { name, email, password, address} = req.body;
+    const { name, email, password} = req.body;
     const { error } = validateNewUser(req.body);
 
     if (error) {
@@ -33,8 +33,7 @@ const createNewUser = async (req, res) => {
     const newUser = await createUserService({
       name,
       email,
-      passwordHash,
-      address
+      passwordHash
     });
     res.send(newUser);
   } catch (e) {
@@ -89,13 +88,11 @@ const getUserProfile = async (req, res) => {
 // Function to update user profile
 const updateUserProfile = async (req, res) => {
   try {
+    const { error, value } = validateUpdateUser(req.body);
 
-   
-    const {error,value}=validateUpdateUser(req.body);
-        if(error){
-            res.status(400).send({message:"Invalid form field.."})
-            return;
-        }
+    if (error) {
+      return res.status(400).send({ message: error.message.replace(/"/g, "") });
+    }
 
     const user = req.user;
     const email = user.email;
