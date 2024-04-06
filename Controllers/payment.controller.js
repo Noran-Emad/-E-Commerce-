@@ -88,7 +88,7 @@ const payment = async (req, res) => {
                 name: item.Product.ProductName,
                 images: [item.Product.productImage],
               },
-              unit_amount: item.Product.productPrice * 100,
+              unit_amount:(item.Product.Discount === 0? (item.Product.productPrice * 100) :((item.Product.productPrice * (item.Product.Discount/100)) * 100)),
             },
             quantity: item.Quantity,
           };

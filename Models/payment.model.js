@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Define the Payment schema
 const paymentSchema = new mongoose.Schema({
     _id: { 
         type: String, 
@@ -27,5 +26,4 @@ const paymentSchema = new mongoose.Schema({
     // }
 })
 
-// Export the Payment model
 module.exports = mongoose.model('Payment', paymentSchema);
