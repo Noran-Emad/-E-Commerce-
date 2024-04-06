@@ -2,16 +2,29 @@ const ordersCollection = require("../Models/order.model");
 const ProductsCollection = require("../Models/Product.model");
 
 let AddFromCartToOrder = async (user,cart) => {
+  /* create local product to this order */
+
+let localtotal = 0;
+  
+  let CartproductsList = cart.CartProducts.map(e =>{
+  let local = JSON.parse(JSON.stringify(e));
+  if (local.Product.Discount > 0) {
+    local.Product.productPrice = local.Product.productPrice * (1 - (e.Product.Discount / 100));
+  }
+  localtotal += local.Product.productPrice;
+  return local;
+})
+
   /* create order and insert cart data into it */
   let neworder = await ordersCollection.create({
     User:user._id,
-    TotalPrice: cart.TotalPrice,
-    Products: cart.CartProducts,
+    TotalPrice: localtotal,
+    Products: CartproductsList,
   });
+
 
   await user.Orders.push(neworder);
   await user.save();
-
   /* reduce the taken quantity from the product quantity */
   for (const obj of cart.CartProducts) {
     obj.Product.productQuantity -= obj.Quantity;

@@ -25,8 +25,6 @@ const DBOrderShema = mongoose.Schema({
       required: true,
       type: {
         Product: {
-          type: mongoose.Types.ObjectId,
-          ref: "Product",
         },
         Quantity: {
           type: Number,

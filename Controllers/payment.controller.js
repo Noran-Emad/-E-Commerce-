@@ -65,7 +65,7 @@ const payment = async (req, res) => {
       if (!isidValid(req.params.id))
       return res.status(400).send("order id is invalid");
 
-      let order = await OrdersCollection.findById(req.params.id).populate({path:'Products',populate:{path:'Product',model:ProductModel}}).exec();
+      let order = await OrdersCollection.findById(req.params.id).exec();
       if (!order)
       return res.status(404).send("there is no order exist with that id");
     
@@ -78,9 +78,11 @@ const payment = async (req, res) => {
       return res.status(400).send(`the order status is already ${order.OrderStatus}`)
 
       /* creating a payment session transaction */
+      console.log('order.Products',order.Products)
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: order.Products.map(item => {
+          console.log('item',item)
           return {
             price_data: {
               currency: 'egp',
@@ -88,7 +90,7 @@ const payment = async (req, res) => {
                 name: item.Product.ProductName,
                 images: [item.Product.productImage],
               },
-              unit_amount:(item.Product.Discount === 0? (item.Product.productPrice * 100) :((item.Product.productPrice * (item.Product.Discount/100)) * 100)),
+              unit_amount:(item.Product.productPrice * 100),
             },
             quantity: item.Quantity,
           };
