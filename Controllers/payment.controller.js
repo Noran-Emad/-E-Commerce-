@@ -78,11 +78,9 @@ const payment = async (req, res) => {
       return res.status(400).send(`the order status is already ${order.OrderStatus}`)
 
       /* creating a payment session transaction */
-      console.log('order.Products',order.Products)
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: order.Products.map(item => {
-          console.log('item',item)
           return {
             price_data: {
               currency: 'egp',

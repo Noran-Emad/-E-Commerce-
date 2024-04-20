@@ -7,6 +7,7 @@ const OrdersCollection = require("../Models/order.model.js");
 const { UpdateCarts } = require("../Services/Cart.service.js");
 const { getUserfromJWT, isidValid } = require("../Services/validator.service.js");
 const { AddFromCartToOrder, refundorderTimeOut,refundorder } = require("../Services/Order.service.js");
+const orderModel = require("../Models/order.model.js");
 
 
 
@@ -71,8 +72,7 @@ let placeOrder = async (req, res) => {
     return res.status(400).send("your cart is empty");
 
   /* insert all the cart products into a new order */
-  let myorder = await AddFromCartToOrder(user,cart);
-
+  let myorder = await AddFromCartToOrder(user,cart,req.body.shippingAddress);
   /* update quantity of products in all carts if they have the products that taken */
   await UpdateCarts(cart.CartProducts);
   

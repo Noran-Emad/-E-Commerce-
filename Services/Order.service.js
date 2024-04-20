@@ -1,7 +1,7 @@
 const ordersCollection = require("../Models/order.model");
 const ProductsCollection = require("../Models/Product.model");
 
-let AddFromCartToOrder = async (user,cart) => {
+let AddFromCartToOrder = async (user,cart,address) => {
   /* create local product to this order */
 
 let localtotal = 0;
@@ -20,6 +20,7 @@ let localtotal = 0;
     User:user._id,
     TotalPrice: localtotal,
     Products: CartproductsList,
+    shippingAddress:address
   });
 
 

@@ -20,6 +20,10 @@ const DBOrderShema = mongoose.Schema({
     default:"pending",
     required: true,
   },
+  shippingAddress:{
+    type:String,
+    required: true,
+  },
   Products: [
     {
       required: true,
